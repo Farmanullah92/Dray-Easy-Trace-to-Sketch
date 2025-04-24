@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'package:draw_easy/widgets/action_buttons.dart';
 import 'package:draw_easy/widgets/control_buttons.dart';
@@ -8,15 +8,18 @@ import 'package:draw_easy/widgets/image_processor.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 class PhotoPreviewScreen extends StatefulWidget {
   final String imagePath;
   final List<CameraDescription> cameras;
+  final bool isAssetImage;
 
   const PhotoPreviewScreen({
     super.key,
     required this.imagePath,
     required this.cameras,
+    this.isAssetImage = false,
   });
 
   @override
@@ -48,19 +51,29 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   late File _originalImageFile;
   Uint8List? _processedImageBytes;
   Uint8List? _originalImageBytes;
+  bool _isProcessing = false;
 
   final GlobalKey _globalKey = GlobalKey();
+  final _debouncer = _Debouncer(milliseconds: 300);
 
   @override
   void initState() {
     super.initState();
-    _originalImageFile = File(widget.imagePath);
+    if (!widget.isAssetImage) {
+      _originalImageFile = File(widget.imagePath);
+    }
     _loadOriginalImage();
     _initCamera();
   }
 
   Future<void> _loadOriginalImage() async {
-    _originalImageBytes = await _originalImageFile.readAsBytes();
+    if (widget.isAssetImage) {
+      final byteData = await rootBundle.load(widget.imagePath);
+      _originalImageBytes = byteData.buffer.asUint8List();
+    } else {
+      _originalImageBytes = await _originalImageFile.readAsBytes();
+    }
+
     if (mounted) {
       setState(() {});
     }
@@ -78,7 +91,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
         orElse: () => widget.cameras.first,
       );
 
-      _cameraController = CameraController(backCamera, ResolutionPreset.high);
+      _cameraController = CameraController(backCamera, ResolutionPreset.medium);
       await _cameraController.initialize();
       if (mounted) {
         setState(() => _isCameraInitialized = true);
@@ -90,7 +103,10 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   }
 
   Future<void> _applyEdgeFilter() async {
-    if (_originalImageBytes == null) return;
+    if (_originalImageBytes == null || _isProcessing) return;
+
+    _isProcessing = true;
+    if (mounted) setState(() {});
 
     try {
       final processedBytes = await ImageProcessor.processImage(
@@ -101,10 +117,14 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       if (mounted) {
         setState(() {
           _processedImageBytes = processedBytes;
+          _isProcessing = false;
         });
       }
     } catch (e) {
       debugPrint('Image processing error: $e');
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
@@ -131,22 +151,20 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
 
   Future<void> _captureImage() async {
     try {
-      // Capture the full screen, including camera preview and UI
       RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject()
               as RenderRepaintBoundary;
-      var image = await boundary.toImage(
-        pixelRatio: 3.0,
-      ); // Increase pixel ratio for higher quality
-      image.toByteData(format: ImageByteFormat.png).then((byteData) {
-        final buffer = byteData!.buffer.asUint8List();
-        setState(() {
-          _capturedImage = XFile.fromData(buffer);
-          _originalImageBytes = buffer;
-          _processedImageBytes = null;
-          _showOriginalImage = true;
-          _edgeLevel = 0.0;
-        });
+      var image = await boundary.toImage(pixelRatio: 2.0);
+      var byteData = await image.toByteData(format: ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final buffer = byteData.buffer.asUint8List();
+      setState(() {
+        _capturedImage = XFile.fromData(buffer);
+        _originalImageBytes = buffer;
+        _processedImageBytes = null;
+        _showOriginalImage = true;
+        _edgeLevel = 0.0;
       });
     } catch (e) {
       debugPrint('Error capturing image: $e');
@@ -178,6 +196,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   @override
   void dispose() {
     _cameraController.dispose();
+    _debouncer.cancel();
     super.dispose();
   }
 
@@ -192,110 +211,148 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final imageSize =
-        _isFullScreen
-            ? Size(screenSize.width, screenSize.height)
-            : Size(300, 300 * _aspectRatios[_currentAspectRatio]!);
+    final aspectRatioValue = _aspectRatios[_currentAspectRatio] ?? 1.0;
+    final imageWidth = min(screenSize.width * 0.9, 300);
+    final imageHeight = imageWidth * aspectRatioValue;
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          if (!_isFullScreen && _isCameraInitialized && _showCameraBackground)
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.5,
-                child: CameraPreview(_cameraController),
+      body: RepaintBoundary(
+        key: _globalKey,
+        child: Stack(
+          children: [
+            if (!_isFullScreen && _isCameraInitialized && _showCameraBackground)
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.5,
+                  child: CameraPreview(_cameraController),
+                ),
               ),
-            ),
-          if (_isFullScreen && _displayImageBytes != null)
-            Image.memory(
-              _displayImageBytes!,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          if (!_isFullScreen && _displayImageBytes != null)
-            Positioned(
-              top: 100,
-              left: 0,
-              right: 0,
-              child: Center(
+
+            if (_isFullScreen && _displayImageBytes != null)
+              Center(
+                child: InteractiveViewer(
+                  panEnabled: false,
+                  minScale: 1.0,
+                  maxScale: 3.0,
+                  child: Image.memory(
+                    _displayImageBytes!,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+              ),
+
+            if (!_isFullScreen && _displayImageBytes != null)
+              Positioned(
+                top: (screenSize.height - imageHeight) / 3,
+                left: (screenSize.width - imageWidth) / 2,
                 child: Transform(
                   alignment: Alignment.center,
                   transform: Matrix4.rotationY(_isFlipped ? pi : 0),
-                  child: SizedBox(
-                    height: imageSize.height,
-                    width: imageSize.width,
-                    child: Image.memory(
-                      _displayImageBytes!,
-                      fit: BoxFit.contain,
-                      color: Color.fromRGBO(255, 255, 255, 1 - _transparency),
-                      colorBlendMode: BlendMode.modulate,
+                  child: Container(
+                    width: 200,
+                    height: imageHeight,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        _displayImageBytes!,
+                        fit: BoxFit.cover,
+                        color: Color.fromRGBO(255, 255, 255, 1 - _transparency),
+                        colorBlendMode: BlendMode.modulate,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          if (!_isFullScreen)
-            Positioned(
-              top: 40,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: ControlButtons(
-                  onBackPressed: () => Navigator.pop(context),
-                  onChangeAspectRatio: _changeAspectRatio,
-                  onFlipImage: _flipImage,
-                  onToggleFlash: _toggleFlash,
-                  onToggleLock: _toggleLock,
-                  isFlashOn: _isFlashOn,
-                  isLocked: _isLocked,
-                ),
-              ),
-            ),
-          if (!_isFullScreen)
-            Positioned(
-              bottom: 220,
-              left: 10,
-              child: IconButton(
-                onPressed: _toggleFullScreen,
-                icon: const Icon(
-                  Icons.fullscreen,
-                  size: 50,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          if (!_isFullScreen)
-            Positioned(
-              bottom: 160,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ActionButtons(
-                  onCapture: _captureImage,
-                  onConvert: _toggleOriginalImage,
-                  onRecord: _toggleRecording,
-                  isRecording: _isRecording,
-                ),
-              ),
-            ),
-          if (!_isFullScreen)
-            Positioned(
-              bottom: 80,
-              left: 20,
-              right: 20,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Edge Level',
-                    style: TextStyle(color: Colors.white),
+
+            if (!_isFullScreen)
+              Positioned(
+                top: 40,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  child: ControlButtons(
+                    onBackPressed: () => Navigator.pop(context),
+                    onChangeAspectRatio: _changeAspectRatio,
+                    onFlipImage: _flipImage,
+                    onToggleFlash: _toggleFlash,
+                    onToggleLock: _toggleLock,
+                    isFlashOn: _isFlashOn,
+                    isLocked: _isLocked,
                   ),
-                  Expanded(
-                    child: Slider(
+                ),
+              ),
+
+            if (!_isFullScreen)
+              Positioned(
+                bottom: 220,
+                left: 10,
+                child: IconButton(
+                  onPressed: _toggleFullScreen,
+                  icon: const Icon(
+                    Icons.fullscreen,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+            if (!_isFullScreen)
+              Positioned(
+                bottom: 160,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ActionButtons(
+                    onCapture: _captureImage,
+                    onConvert: _toggleOriginalImage,
+                    onRecord: _toggleRecording,
+                    isRecording: _isRecording,
+                  ),
+                ),
+              ),
+
+            if (!_isFullScreen)
+              Positioned(
+                bottom: 80,
+                left: 20,
+                right: 20,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Edge Level',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        if (_isProcessing)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    Slider(
                       value: _edgeLevel,
                       min: 0.0,
                       max: 1.0,
@@ -304,29 +361,27 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                       onChanged:
                           _isLocked
                               ? null
-                              : (value) async {
+                              : (value) {
                                 setState(() => _edgeLevel = value);
-                                await _applyEdgeFilter();
+                                _debouncer.run(_applyEdgeFilter);
                               },
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          if (!_isFullScreen)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Transparency',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  Expanded(
-                    child: Slider(
+
+            if (!_isFullScreen)
+              Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: Column(
+                  children: [
+                    const Text(
+                      'Transparency',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Slider(
                       value: _transparency,
                       min: 0.0,
                       max: 1.0,
@@ -338,12 +393,29 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                               : (value) =>
                                   setState(() => _transparency = value),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _Debouncer {
+  final int milliseconds;
+  VoidCallback? _action;
+  Timer? _timer;
+
+  _Debouncer({required this.milliseconds});
+
+  void run(VoidCallback action) {
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+
+  void cancel() {
+    _timer?.cancel();
   }
 }

@@ -2,14 +2,14 @@ import 'package:draw_easy/views/screens/camera/photo_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
-class ShapeScreen extends StatefulWidget {
-  const ShapeScreen({super.key});
+class VegetableScreen extends StatefulWidget {
+  const VegetableScreen({super.key});
 
   @override
-  State<ShapeScreen> createState() => _ShapeScreenState();
+  State<VegetableScreen> createState() => _VegetableScreenState();
 }
 
-class _ShapeScreenState extends State<ShapeScreen> {
+class _VegetableScreenState extends State<VegetableScreen> {
   late List<CameraDescription> cameras;
 
   final List<String> shapeImagePaths = const [

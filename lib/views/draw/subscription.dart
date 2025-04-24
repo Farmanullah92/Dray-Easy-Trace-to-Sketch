@@ -14,7 +14,7 @@ class _SubscriptionState extends State<Subscription> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -219,7 +219,7 @@ class _SubscriptionState extends State<Subscription> {
                       },
                       child: const Text(
                         'Politica de privacidade',
-                        style: TextStyle(fontSize: 14, color: Colors.blue),
+                        style: TextStyle(fontSize: 12, color: Colors.blue),
                       ),
                     ),
                     const Text(
@@ -232,7 +232,7 @@ class _SubscriptionState extends State<Subscription> {
                       },
                       child: const Text(
                         'Google Play Subscriptions',
-                        style: TextStyle(fontSize: 14, color: Colors.blue),
+                        style: TextStyle(fontSize: 12, color: Colors.blue),
                       ),
                     ),
                   ],

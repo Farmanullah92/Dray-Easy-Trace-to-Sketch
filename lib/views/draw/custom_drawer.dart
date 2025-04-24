@@ -81,7 +81,7 @@ class CustomDrawer extends StatelessWidget {
               leading: const Icon(Icons.card_membership),
               title: Text(LocaleData.subscription.getString(context)),
               onTap: () {
-                Get.to(() => const Subscription());
+                Get.to(() => Subscription());
               },
             ),
 

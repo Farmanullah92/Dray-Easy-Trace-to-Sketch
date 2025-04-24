@@ -1,3 +1,4 @@
+import 'package:draw_easy/views/screens/category/category_details_screen.dart';
 import 'package:flutter/material.dart';
 
 class DrawObjects extends StatefulWidget {
@@ -9,18 +10,24 @@ class DrawObjects extends StatefulWidget {
 
 class _DrawObjectsState extends State<DrawObjects> {
   final List<Map<String, dynamic>> books = [
-    {'title': 'Shape', 'icon': Icons.category},
-    {'title': 'Fruits', 'icon': Icons.apple},
-    {'title': 'Cafe', 'icon': Icons.local_cafe},
-    {'title': 'Holiday', 'icon': Icons.beach_access},
-    {'title': 'Vegetable', 'icon': Icons.rice_bowl},
-    {'title': 'Animals', 'icon': Icons.pets},
-    {'title': 'Flower', 'icon': Icons.local_florist},
-    {'title': 'Birds', 'icon': Icons.filter_hdr},
+    {'title': 'Shape', 'icon': Icons.category, 'color': Colors.blue},
+    {'title': 'Fruits', 'icon': Icons.apple, 'color': Colors.red},
+    {'title': 'Cafe', 'icon': Icons.local_cafe, 'color': Colors.brown},
+    {'title': 'Holiday', 'icon': Icons.beach_access, 'color': Colors.teal},
+    {'title': 'Vegetable', 'icon': Icons.rice_bowl, 'color': Colors.green},
+    {'title': 'Animals', 'icon': Icons.pets, 'color': Colors.orange},
+    {'title': 'Flower', 'icon': Icons.local_florist, 'color': Colors.pink},
+    {'title': 'Birds', 'icon': Icons.filter_hdr, 'color': Colors.purple},
   ];
 
-  void handleTap(String title) {
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => ,));
+  void handleTap(String title, Color color) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => CategoryDetailsScreen(category: title, color: color),
+      ),
+    );
   }
 
   @override
@@ -46,13 +53,21 @@ class _DrawObjectsState extends State<DrawObjects> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 20),
                     child: GestureDetector(
-                      onTap: () => handleTap(book['title']),
+                      onTap: () => handleTap(book['title'], book['color']),
                       child: Container(
                         height: 280,
                         width: 320,
                         decoration: BoxDecoration(
-                          color: Colors.blueGrey,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: book['color'], width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: book['color'].withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -63,21 +78,21 @@ class _DrawObjectsState extends State<DrawObjects> {
                                 height: 190,
                                 width: 250,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: book['color'].withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Icon(
                                   book['icon'],
                                   size: 80,
-                                  color: Colors.blueGrey,
+                                  color: book['color'],
                                 ),
                               ),
                               const SizedBox(height: 10),
                               Text(
                                 book['title'],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.white,
+                                  color: book['color'],
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

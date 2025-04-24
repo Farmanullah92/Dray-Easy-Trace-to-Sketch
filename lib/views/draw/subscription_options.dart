@@ -39,7 +39,7 @@ class _SubscriptionOptionsState extends State<SubscriptionOptions> {
           },
           child: Container(
             height: 120,
-            width: 120,
+            width: 100,
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
