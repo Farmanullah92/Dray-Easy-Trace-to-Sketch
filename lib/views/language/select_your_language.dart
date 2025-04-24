@@ -1,7 +1,9 @@
 import 'package:draw_easy/views/onboarding/onboarding_screen.dart';
+import 'package:draw_easy/views/screens/home_screen.dart';
 import 'package:draw_easy/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/localization_service.dart';
 
 class SelectYourLanguage extends StatefulWidget {
@@ -118,11 +120,28 @@ class _SelectYourLanguageState extends State<SelectYourLanguage> {
     try {
       if (selectedLanguage != null) {
         _localization.translate(selectedLanguage!);
+
+        // Check if onboarding has been shown before
+        final prefs = await SharedPreferences.getInstance();
+        final bool hasSeenOnboarding =
+            prefs.getBool('hasSeenOnboarding') ?? false;
+
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => OnboardingScreen()),
-        );
+
+        if (!hasSeenOnboarding) {
+          // First time - show onboarding and mark as seen
+          await prefs.setBool('hasSeenOnboarding', true);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => OnboardingScreen()),
+          );
+        } else {
+          // Not first time - navigate directly to home screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
