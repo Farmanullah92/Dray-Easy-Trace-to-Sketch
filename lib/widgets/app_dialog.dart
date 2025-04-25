@@ -2,31 +2,48 @@ import 'package:flutter/material.dart';
 
 class AppDialog extends StatelessWidget {
   final String title;
-  final String message;
-  final String buttonText;
-  final VoidCallback onPressed;
+  final String? message;
+  final String? buttonText;
+  final VoidCallback? onPressed;
   final String? imagePath;
   final bool showCloseButton;
+  final Widget? customContent;
+  final Color? buttonColor;
+  final Color? buttonTextColor;
+  final double? imageHeight;
 
   const AppDialog({
     super.key,
     required this.title,
-    required this.message,
-    required this.buttonText,
-    required this.onPressed,
+    this.message,
+    this.buttonText,
+    this.onPressed,
     this.imagePath,
     this.showCloseButton = true,
-  });
+    this.customContent,
+    this.buttonColor,
+    this.buttonTextColor,
+    this.imageHeight,
+  }) : assert(message == null || customContent == null,
+  'Cannot provide both message and customContent');
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Stack(
-        children: [
-          Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Stack(
+          children: [
+            Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Image at the top (if provided)
@@ -35,19 +52,19 @@ class AppDialog extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child:
-                        imagePath!.startsWith('http')
-                            ? Image.network(
-                              imagePath!,
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                            : Image.asset(
-                              imagePath!,
-                              height: 130,
-                              width: double.infinity,
-                            ),
+                    child: imagePath!.startsWith('http')
+                        ? Image.network(
+                      imagePath!,
+                      height: imageHeight ?? 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                        : Image.asset(
+                      imagePath!,
+                      height: imageHeight ?? 130,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
 
                 // Content
@@ -58,66 +75,76 @@ class AppDialog extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: onPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black45,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      if (message != null || customContent != null)
+                        const SizedBox(height: 12),
+                      if (message != null)
+                        Text(
+                          message!,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.black54,
                           ),
                         ),
-                        child: Text(
-                          buttonText,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                      if (customContent != null) customContent!,
+                      if (buttonText != null) const SizedBox(height: 20),
+                      if (buttonText != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: onPressed ?? () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: buttonColor ?? Theme.of(context).primaryColor,
+                              foregroundColor: buttonTextColor ?? Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: Text(
+                              buttonText!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
 
-          // Close button in top-right corner
-          if (showCloseButton)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    // ignore: deprecated_member_use
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
+            // Close button in top-right corner
+            if (showCloseButton)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(6),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                  padding: const EdgeInsets.all(6),
-                  child: const Icon(Icons.close, color: Colors.white, size: 20),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -8,7 +8,9 @@ import 'package:draw_easy/widgets/custom_button.dart';
 import 'package:draw_easy/views/draw/custom_drawer.dart';
 import 'package:draw_easy/widgets/custom_sketch_card.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../controllers/home_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,62 +20,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HomeController controller = Get.put(HomeController());
+
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
     return Scaffold(
       drawer: CustomDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF4F7FA),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black, size: 25),
         actions: [
-          // Help Button
           CustomElevatedButton(
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => OnboardingScreen()),
-              );
+              Get.offAll(() => OnboardingScreen());
             },
             backgroundColor: const Color(0xFFF4F7FA),
             padding: const EdgeInsets.all(8),
-            child: const Icon(
-              Icons.help_outline,
-              color: Colors.black,
-              size: 24,
-            ),
+            child: const Icon(Icons.help_outline, color: Colors.black, size: 25),
           ),
           const SizedBox(width: 10),
-
-          // Notifications Button
           CustomElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications will appear here')),
-              );
+              controller.showRatingDialog(context);
             },
             backgroundColor: Colors.white,
             padding: const EdgeInsets.all(8),
-            child: const Icon(
-              Icons.notifications_none,
-              color: Colors.black,
-              size: 24,
-            ),
+            child: const Icon(Icons.star, color: Colors.black, size: 25),
           ),
           const SizedBox(width: 10),
-
-          // Profile Button
           CustomElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Subscription()),
-              );
+              Get.to(() => Subscription());
             },
             backgroundColor: Colors.white,
             padding: const EdgeInsets.all(8),
@@ -84,116 +67,91 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       backgroundColor: const Color(0xFFF4F7FA),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Top decorative image
-              Align(
-                alignment: Alignment.topRight,
-                child: Image.asset(
-                  'assets/images/hind.png',
-                  height: isPortrait ? screenHeight * 0.15 : screenHeight * 0.2,
-                  fit: BoxFit.contain,
-                ),
-              ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            double padding = screenWidth * 0.08;
+            double spacing = screenWidth * 0.02;
+            double imageHeight = isPortrait ? screenHeight * 0.15 : screenHeight * 0.25;
 
-              // Title
-              Text(
-                'Trace & Sketch',
-                style: GoogleFonts.tradeWinds(
-                  fontSize:
-                      isPortrait ? screenWidth * 0.10 : screenHeight * 0.08,
-                ),
-              ),
-
-              // First row of cards
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.08,
-                  vertical:
-                      isPortrait ? screenHeight * 0.02 : screenHeight * 0.05,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Flexible(
-                      child: CustomImageCard(
-                        imagePath: 'assets/images/gallery.png',
-                        title: 'Gallery',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const GalleryScreen(),
-                            ),
-                          );
-                        },
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Image.asset(
+                      'assets/images/hind.png',
+                      height: imageHeight,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Trace & Sketch',
+                      style: GoogleFonts.tradeWinds(
+                        fontSize: isPortrait ? screenWidth * 0.08 : screenHeight * 0.08,
                       ),
                     ),
-                    SizedBox(width: screenWidth * 0.01),
-                    Flexible(
-                      child: CustomImageCard(
-                        imagePath: 'assets/images/camera.png',
-                        title: 'Camera',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CameraScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: padding),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomImageCard(
+                            imagePath: 'assets/images/gallery.png',
+                            title: 'Gallery',
+                            onTap: () {
+                              Get.to(() => GalleryScreen());
+                            },
+                          ),
+                        ),
+                        SizedBox(width: spacing),
+                        Expanded(
+                          child: CustomImageCard(
+                            imagePath: 'assets/images/camera.png',
+                            title: 'Camera',
+                            onTap: () {
+                              Get.to(() => CameraScreen());
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: padding),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomImageCard(
+                            imagePath: 'assets/images/draw_object.png',
+                            title: 'Draw\nObjects',
+                            onTap: () {
+                              Get.to(() => DrawObjects());
+                            },
+                          ),
+                        ),
+                        SizedBox(width: spacing),
+                        Expanded(
+                          child: CustomImageCard(
+                            imagePath: 'assets/images/mysketch.png',
+                            title: 'My\nSketch',
+                            onTap: () {
+                              Get.to(() => MySketch());
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.05),
+                ],
               ),
-
-              // Second row of cards
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.08,
-                  vertical:
-                      isPortrait ? screenHeight * 0.01 : screenHeight * 0.05,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Flexible(
-                      child: CustomImageCard(
-                        imagePath: 'assets/images/draw_object.png',
-                        title: 'Draw\nObjects',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DrawObjects(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(width: screenWidth * 0.01),
-                    Flexible(
-                      child: CustomImageCard(
-                        imagePath: 'assets/images/mysketch.png',
-                        title: 'My\nSketch',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => MySketch()),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Add some bottom padding
-              SizedBox(height: isPortrait ? screenHeight * 0.05 : 0),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

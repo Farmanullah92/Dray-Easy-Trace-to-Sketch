@@ -14,6 +14,11 @@ class CustomImageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -24,18 +29,23 @@ class CustomImageCard extends StatelessWidget {
             color: const Color(0xFFF4F7FA),
             borderRadius: BorderRadius.circular(20),
           ),
-          height: 100,
-          width: 155,
-          padding: const EdgeInsets.symmetric(horizontal: 3),
+          height: isPortrait ? screenHeight * 0.12 : screenHeight * 0.20,
+          width: isPortrait ? screenWidth * 0.40 : screenWidth * 0.30,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Row(
             children: [
-              Image.asset(imagePath, height: 60),
+              Image.asset(
+                imagePath,
+                height: isPortrait ? screenHeight * 0.07 : screenHeight * 0.1,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style: TextStyle(
+                    fontSize: isPortrait
+                        ? screenWidth * 0.040
+                        : screenHeight * 0.025,
                     fontWeight: FontWeight.bold,
                   ),
                   softWrap: true,

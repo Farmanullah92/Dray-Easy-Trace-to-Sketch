@@ -1,5 +1,4 @@
 import 'package:draw_easy/views/onboarding/onboarding_screen.dart';
-import 'package:draw_easy/views/screens/home_screen.dart';
 import 'package:draw_easy/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
@@ -103,10 +102,9 @@ class _SelectYourLanguageState extends State<SelectYourLanguage> {
                     language['name']!,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
-                  trailing:
-                      isSelected
-                          ? const Icon(Icons.check_circle, color: Colors.blue)
-                          : null,
+                  trailing: isSelected
+                      ? const Icon(Icons.check_circle, color: Colors.blue)
+                      : null,
                 ),
               ),
             ),
@@ -121,27 +119,15 @@ class _SelectYourLanguageState extends State<SelectYourLanguage> {
       if (selectedLanguage != null) {
         _localization.translate(selectedLanguage!);
 
-        // Check if onboarding has been shown before
         final prefs = await SharedPreferences.getInstance();
-        final bool hasSeenOnboarding =
-            prefs.getBool('hasSeenOnboarding') ?? false;
+        await prefs.setString('selectedLanguage', selectedLanguage!);
 
         if (!mounted) return;
 
-        if (!hasSeenOnboarding) {
-          // First time - show onboarding and mark as seen
-          await prefs.setBool('hasSeenOnboarding', true);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => OnboardingScreen()),
-          );
-        } else {
-          // Not first time - navigate directly to home screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OnboardingScreen()),
+        );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
