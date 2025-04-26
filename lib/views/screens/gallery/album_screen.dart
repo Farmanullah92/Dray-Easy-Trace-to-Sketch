@@ -1,10 +1,10 @@
-import 'package:draw_easy/views/screens/asset_thumbnail.dart';
+import 'package:draw_easy/views/screens/gallery/asset_thumbnail.dart';
 import 'package:draw_easy/views/screens/camera/photo_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:get/get.dart';
-import '../../controllers/album_controller.dart';
-import '../../widgets/app_dialog.dart';
+import '../../../controllers/album_controller.dart';
+import '../../../widgets/app_dialog.dart';
 
 class AlbumScreen extends StatefulWidget {
   final AssetPathEntity album;
@@ -12,6 +12,7 @@ class AlbumScreen extends StatefulWidget {
   const AlbumScreen({super.key, required this.album});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AlbumScreenState createState() => _AlbumScreenState();
 }
 
@@ -59,9 +60,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
                     context: context,
                     builder: (_) {
                       return AppDialog(
-                        title: 'Please Wait',
+                        title: 'Please wait...',
                         imagePath: 'assets/images/hind.png',
-                        message: 'Wait.....',
+                        imageHeight: 200,
                       );
                     },
                   );
@@ -72,8 +73,10 @@ class _AlbumScreenState extends State<AlbumScreen> {
                   // Load the image file after the delay
                   final file = await controller.assets[index].file;
                   if (file != null && controller.cameras.isNotEmpty) {
+                    // ignore: use_build_context_synchronously
                     Navigator.pop(context); // Close the dialog after processing
                     Navigator.push(
+                      // ignore: use_build_context_synchronously
                       context,
                       MaterialPageRoute(
                         builder:
@@ -84,7 +87,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
                       ),
                     );
                   } else {
+                    // ignore: use_build_context_synchronously
                     Navigator.pop(context); // Close the dialog on error
+                    // ignore: avoid_print
                     print("No cameras available or file is null");
                   }
                 },

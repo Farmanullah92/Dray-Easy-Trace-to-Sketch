@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../../controllers/gallery_controller.dart';
+import '../../../controllers/gallery_controller.dart';
 import 'album_screen.dart';
 import 'asset_thumbnail.dart';
 

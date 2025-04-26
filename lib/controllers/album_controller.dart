@@ -12,6 +12,7 @@ class AlbumController extends GetxController {
       cameras = await availableCameras();
       update(); // This will notify listeners to update the UI
     } catch (e) {
+      // ignore: avoid_print
       print("Error initializing cameras: $e");
     }
   }
@@ -23,6 +24,7 @@ class AlbumController extends GetxController {
       assets = await album.getAssetListRange(start: 0, end: assetCount);
       update();
     } catch (e) {
+      // ignore: avoid_print
       print("Error fetching assets: $e");
     }
   }

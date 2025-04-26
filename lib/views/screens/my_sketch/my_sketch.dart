@@ -48,6 +48,7 @@ class _MySketchState extends State<MySketch> {
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.grey.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
@@ -72,6 +73,7 @@ class _MySketchState extends State<MySketch> {
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.grey.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),

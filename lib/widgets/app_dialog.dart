@@ -24,15 +24,15 @@ class AppDialog extends StatelessWidget {
     this.buttonColor,
     this.buttonTextColor,
     this.imageHeight,
-  }) : assert(message == null || customContent == null,
-  'Cannot provide both message and customContent');
+  }) : assert(
+         message == null || customContent == null,
+         'Cannot provide both message and customContent',
+       );
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
@@ -52,19 +52,20 @@ class AppDialog extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: imagePath!.startsWith('http')
-                        ? Image.network(
-                      imagePath!,
-                      height: imageHeight ?? 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                        : Image.asset(
-                      imagePath!,
-                      height: imageHeight ?? 130,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    child:
+                        imagePath!.startsWith('http')
+                            ? Image.network(
+                              imagePath!,
+                              height: imageHeight ?? 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                            : Image.asset(
+                              imagePath!,
+                              height: imageHeight ?? 130,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                   ),
 
                 // Content
@@ -75,9 +76,8 @@ class AppDialog extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                       if (message != null || customContent != null)
@@ -86,9 +86,8 @@ class AppDialog extends StatelessWidget {
                         Text(
                           message!,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.black54,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Colors.black54),
                         ),
                       if (customContent != null) customContent!,
                       if (buttonText != null) const SizedBox(height: 20),
@@ -96,9 +95,11 @@ class AppDialog extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: onPressed ?? () => Navigator.pop(context),
+                            onPressed:
+                                onPressed ?? () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonColor ?? Theme.of(context).primaryColor,
+                              backgroundColor:
+                                  buttonColor ?? Theme.of(context).primaryColor,
                               foregroundColor: buttonTextColor ?? Colors.white,
                               minimumSize: const Size(double.infinity, 50),
                               shape: RoundedRectangleBorder(
@@ -131,6 +132,7 @@ class AppDialog extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     decoration: BoxDecoration(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.5),
                       shape: BoxShape.circle,
                     ),

@@ -1,9 +1,9 @@
 import 'package:draw_easy/views/draw/subscription.dart';
 import 'package:draw_easy/views/screens/camera/camera_screen.dart';
-import 'package:draw_easy/views/screens/draw_objects.dart';
-import 'package:draw_easy/views/screens/gallery_screen.dart';
+import 'package:draw_easy/views/screens/draw_objects/draw_objects.dart';
+import 'package:draw_easy/views/screens/gallery/gallery_screen.dart';
 import 'package:draw_easy/views/onboarding/onboarding_screen.dart';
-import 'package:draw_easy/views/screens/my_sketch.dart';
+import 'package:draw_easy/views/screens/my_sketch/my_sketch.dart';
 import 'package:draw_easy/widgets/custom_button.dart';
 import 'package:draw_easy/views/draw/custom_drawer.dart';
 import 'package:draw_easy/widgets/custom_sketch_card.dart';
